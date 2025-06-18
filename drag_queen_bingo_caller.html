@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Drag Queen Bingo Caller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #a200c5;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 20px;
+        }
+        .logo {
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        #loginScreen, #bingoScreen {
+            display: none;
+        }
+        .card {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: auto;
+        }
+        #bingoBall {
+            font-size: 96px;
+            margin: 20px 0;
+        }
+        #calledNumbers {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .number {
+            width: 40px;
+            margin: 4px;
+            padding: 8px;
+            background: #ffffff;
+            color: black;
+            border-radius: 6px;
+        }
+        input[type="text"], input[type="email"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #0000ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #venueLogo {
+            max-width: 200px;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="queerazon_logo.png" alt="Queerazon Logo" class="logo">
+        <div id="loginScreen" class="card">
+            <h2>Sign In</h2>
+            <input type="text" id="username" placeholder="Name or email"><br>
+            <label><input type="checkbox" id="tos"> I agree to the Terms of Service</label><br>
+            <button onclick="login()">Continue</button>
+        </div>
+        <div id="bingoScreen" class="card">
+            <input type="file" id="logoUpload" accept="image/*" onchange="previewLogo()"><br>
+            <img id="venueLogo" src="#" alt="Venue Logo" style="display:none;"><br>
+            <div id="bingoBall">🎉</div>
+            <button onclick="callNextBall()">Call Next Ball</button>
+            <div id="calledNumbers"></div>
+        </div>
+    </div>
+
+    <audio id="bingoSound">
+        <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg">
+    </audio>
+
+    <script>
+        const loginScreen = document.getElementById('loginScreen');
+        const bingoScreen = document.getElementById('bingoScreen');
+        const bingoBall = document.getElementById('bingoBall');
+        const calledNumbers = document.getElementById('calledNumbers');
+        const sound = document.getElementById('bingoSound');
+
+        const letters = ['B', 'I', 'N', 'G', 'O'];
+        const allNumbers = [];
+        for (let i = 1; i <= 75; i++) {
+            allNumbers.push(i);
+        }
+
+        const usedNumbers = [];
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const tos = document.getElementById('tos').checked;
+            if (!username || !tos) {
+                alert('Please enter your name and agree to the Terms of Service.');
+                return;
+            }
+            loginScreen.style.display = 'none';
+            bingoScreen.style.display = 'block';
+        }
+
+        function callNextBall() {
+            if (allNumbers.length === 0) {
+                alert("All numbers have been called!");
+                return;
+            }
+            const index = Math.floor(Math.random() * allNumbers.length);
+            const number = allNumbers.splice(index, 1)[0];
+            const letter = letters[Math.floor((number - 1) / 15)];
+            const call = `${letter}-${number}`;
+            bingoBall.innerText = call;
+            usedNumbers.push(call);
+            const div = document.createElement('div');
+            div.className = 'number';
+            div.innerText = call;
+            calledNumbers.appendChild(div);
+            sound.play();
+        }
+
+        function previewLogo() {
+            const file = document.getElementById('logoUpload').files[0];
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                const venueLogo = document.getElementById('venueLogo');
+                venueLogo.src = reader.result;
+                venueLogo.style.display = 'block';
+            };
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Start at login
+        loginScreen.style.display = 'block';
+    </script>
+</body>
+</html>
