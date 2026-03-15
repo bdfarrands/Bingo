@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drag Bingo - Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: black;
+      color: white;
+      overflow: hidden;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .called-number {
+      font-size: clamp(6rem, 20vw, 13rem);
+      line-height: 0.95;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      color: #111;
+      text-shadow:
+        -3px -3px 0 white,
+         3px -3px 0 white,
+        -3px  3px 0 white,
+         3px  3px 0 white,
+         0 0 20px rgba(255,255,255,0.45);
+      margin-bottom: 18px;
+      padding: 0 14px;
+    }
+    .shape-panel {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 1200;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+    }
+    .shape-copy {
+      text-align: left;
+    }
+    .shape-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #ffc9ee;
+      margin-bottom: 3px;
+    }
+    .shape-name {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 18px);
+      gap: 4px;
+      flex: 0 0 auto;
+    }
+    .shape-cell {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .shape-cell.active {
+      background: #ff4dc4;
+      box-shadow: 0 0 10px rgba(255,77,196,0.45);
+    }
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 1000;
+    }
+    .controls button {
+      margin: 10px 6px;
+      font-size: 1.1rem;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e600ac;
+      color: white;
+      cursor: pointer;
+    }
+    .tally {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      max-width: 92%;
+      background-color: rgba(0,0,0,0.68);
+      padding: 15px 18px;
+      border-radius: 16px;
+    }
+    .tally span {
+      background: rgba(255,255,255,0.18);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+    .bottom-left, .bottom-right {
+      position: fixed;
+      bottom: 20px;
+      z-index: 900;
+      color: white;
+      text-shadow: 1px 1px 3px black;
+      max-width: 180px;
+    }
+    .bottom-left { left: 20px; text-align: left; }
+    .bottom-right { right: 20px; text-align: right; }
+    .bottom-left img, .bottom-right img {
+      max-width: 160px;
+      max-height: 160px;
+      display: block;
+    }
+    #venueNameLabel, #hostLabel {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+    #intermissionOverlay {
+      position: fixed;
+      inset: 0;
+      background: black;
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #intermissionImage {
+      max-width: 92vw;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+    #intermissionCaption {
+      margin-top: 16px;
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+    @media (max-width: 900px) {
+      .shape-panel {
+        gap: 10px;
+        padding: 10px 12px;
+      }
+      .shape-name {
+        font-size: 1rem;
+      }
+      .shape-grid {
+        grid-template-columns: repeat(5, 14px);
+      }
+      .shape-cell {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shape-panel">
+    <div class="shape-copy">
+      <div class="shape-title">Winning Shape</div>
+      <div class="shape-name" id="shapeName">Straight Line</div>
+    </div>
+    <div class="shape-grid" id="shapePreview"></div>
+  </div>
+
+  <div class="overlay">
+    <div class="called-number" id="calledNumber">--</div>
+    <div class="tally" id="calledNumbersList"></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="callNextNumber()">Call Next</button>
+    <button onclick="resetGame()">Reset / New Game</button>
+    <button onclick="startIntermission()">Intermission</button>
+    <button id="resumeBtn" onclick="resumeGame()" style="display:none;">Resume Play</button>
+  </div>
+
+  <div class="bottom-left">
+    <div id="venueNameLabel"></div>
+    <img id="venueLogoImg" alt="Venue logo" style="display:none;" />
+  </div>
+
+  <div class="bottom-right">
+    <div id="hostLabel"></div>
+    <img src="queerazon.png" alt="Queerazon Logo" />
+  </div>
+
+  <div id="intermissionOverlay">
+    <img id="intermissionImage" alt="Intermission image" />
+    <div id="intermissionCaption">Intermission</div>
+  </div>
+
+  <script>
+    const calledDisplay = document.getElementById("calledNumber");
+    const calledList = document.getElementById("calledNumbersList");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const intermissionOverlay = document.getElementById("intermissionOverlay");
+    const intermissionImage = document.getElementById("intermissionImage");
+    const shapePreview = document.getElementById("shapePreview");
+    const shapeName = document.getElementById("shapeName");
+
+    const SHAPES = {
+      "line": { label: "Straight Line", cells: [2, 7, 12, 17, 22] },
+      "four-corners": { label: "Four Corners", cells: [0, 4, 20, 24] },
+      "postage-stamp": { label: "Postage Stamp", cells: [0, 1, 5, 6] },
+      "letter-l": { label: "Letter L", cells: [0, 5, 10, 15, 20, 21, 22, 23, 24] },
+      "letter-t": { label: "Letter T", cells: [0, 1, 2, 3, 4, 7, 12, 17, 22] },
+      "x-shape": { label: "X Shape", cells: [0, 4, 6, 8, 12, 16, 18, 20, 24] },
+      "full-card": { label: "Full Card / Blackout", cells: Array.from({ length: 25 }, (_, i) => i) }
+    };
+
+    let allNumbers = [];
+    let remainingNumbers = [];
+    let intermissionImages = [];
+    let intermissionIndex = 0;
+    let intermissionTimer = null;
+
+    function getPrefix(n) {
+      if (n <= 15) return "B";
+      if (n <= 30) return "I";
+      if (n <= 45) return "N";
+      if (n <= 60) return "G";
+      return "O";
+    }
+
+    function renderShape(shapeKey) {
+      const shape = SHAPES[shapeKey] || SHAPES.line;
+      shapeName.textContent = shape.label;
+      shapePreview.innerHTML = "";
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement("div");
+        cell.className = "shape-cell" + (shape.cells.includes(i) ? " active" : "");
+        shapePreview.appendChild(cell);
+      }
+    }
+
+    function callNextNumber() {
+      if (remainingNumbers.length === 0) return;
+      const idx = Math.floor(Math.random() * remainingNumbers.length);
+      const num = remainingNumbers.splice(idx, 1)[0];
+      const label = `${getPrefix(num)}-${num}`;
+      allNumbers.push({ label, num });
+      calledDisplay.textContent = label;
+      renderCalledList();
+    }
+
+    function renderCalledList() {
+      calledList.innerHTML = "";
+      [...allNumbers]
+        .sort((a, b) => a.num - b.num)
+        .forEach(entry => {
+          const tag = document.createElement("span");
+          tag.textContent = entry.label;
+          calledList.appendChild(tag);
+        });
+    }
+
+    function getBackgroundsForTheme(theme) {
+      if (theme === "bingo-himbos") {
+        return Array.from({length: 8}, (_, i) => `themes/bingo-himbos/bg${i + 1}.jpg`);
+      }
+      if (theme === "unicorns-and-fairies") {
+        return Array.from({length: 10}, (_, i) => `themes/unicorns-and-fairies/bg${i + 1}.jpg`);
+      }
+      return Array.from({length: 14}, (_, i) => `bg${i + 1}.jpg`);
+    }
+
+    function resetGame() {
+      remainingNumbers = Array.from({ length: 75 }, (_, i) => i + 1);
+      allNumbers = [];
+      calledDisplay.textContent = "--";
+      renderCalledList();
+
+      const theme = localStorage.getItem("bingoTheme") || "";
+      const backgrounds = getBackgroundsForTheme(theme);
+      const selected = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      document.body.style.backgroundImage = `url('${selected}')`;
+    }
+
+    function showIntermissionImage() {
+      if (!intermissionImages.length) {
+        intermissionImage.removeAttribute("src");
+        return;
+      }
+      intermissionImage.src = intermissionImages[intermissionIndex].url;
+      intermissionIndex = (intermissionIndex + 1) % intermissionImages.length;
+    }
+
+    function startIntermission() {
+      intermissionImages = JSON.parse(localStorage.getItem("intermissionImages") || "[]");
+      if (!intermissionImages.length) {
+        alert("No intermission images uploaded.");
+        return;
+      }
+
+      intermissionOverlay.style.display = "flex";
+      resumeBtn.style.display = "inline-block";
+      intermissionIndex = 0;
+      showIntermissionImage();
+      clearInterval(intermissionTimer);
+      intermissionTimer = setInterval(showIntermissionImage, 5000);
+    }
+
+    function resumeGame() {
+      intermissionOverlay.style.display = "none";
+      resumeBtn.style.display = "none";
+      clearInterval(intermissionTimer);
+      intermissionTimer = null;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const callerName = localStorage.getItem("callerName") || "Caller Name";
+      const venueName = localStorage.getItem("venueName") || "Venue";
+      const venueLogo = localStorage.getItem("venueLogo");
+      const shapePattern = localStorage.getItem("bingoShapePattern") || "line";
+
+      document.getElementById("hostLabel").textContent = `Your Host: ${callerName}`;
+      document.getElementById("venueNameLabel").textContent = venueName;
+
+      const venueLogoImg = document.getElementById("venueLogoImg");
+      if (venueLogo) {
+        venueLogoImg.src = venueLogo;
+        venueLogoImg.style.display = "block";
+      }
+
+      renderShape(shapePattern);
+      resetGame();
+
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>

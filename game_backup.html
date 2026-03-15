@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drag Bingo - Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: black;
+      color: white;
+      overflow: hidden;
+    }
+    .overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .center {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .called-number {
+      font-size: 8em;
+      font-weight: bold;
+    text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;}
+    .buttons button {
+      margin: 10px;
+      font-size: 1.2em;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background-color: #e600ac;
+      color: white;
+      cursor: pointer;
+    }
+    .tally {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tally span {
+      background: rgba(255,255,255,0.2);
+      padding: 6px 12px;
+      border-radius: 4px;
+    }
+    .logo {
+      max-height: 50px;
+    }
+  
+.bingo-number { color: white; font-weight: bold; text-shadow: 2px 2px 4px black; }
+.called-number { color: white; font-weight: bold; text-shadow: 2px 2px 4px black; text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;}
+.called-number { color: black; font-weight: bold; text-shadow: none; text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;}
+#calledNumbersList { background-color: black; color: white; padding: 10px; font-size: 1.2em; font-weight: bold; max-width: 90%; margin: 0 auto; text-align: center; border-radius: 10px; }</style>
+</head>
+<body>
+
+  <div id="venueBlock" style="
+      position: fixed;
+      bottom: 60px;
+      left: 20px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 150px;
+      pointer-events: none;
+  ">
+    <div id="venueName" style="color: white; font-weight: bold; margin-bottom: 5px; text-align: center;"></div>
+    <div id="venueLogo" style="width: 100%; max-height: 100px;"></div>
+  </div>
+
+  <div id="hostBlock" style="
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 150px;
+      pointer-events: none;
+  ">
+    <div id="hostName" style="color: white; font-weight: bold; margin-bottom: 5px; text-align: center;"></div>
+    <div id="queerazonLogo" style="width: 100%; max-height: 80px;">
+      <img src="queerazon-logo.png" alt="" style="width: 100%; height: auto;" />
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const logoData = localStorage.getItem("venueLogo");
+      const venue = localStorage.getItem("venueName");
+      const host = localStorage.getItem("callerName");
+
+      const venueNameEl = document.getElementById("venueName");
+      const hostNameEl = document.getElementById("hostName");
+      const venueLogoEl = document.getElementById("venueLogo");
+
+      if (logoData) {
+        const img = document.createElement("img");
+        img.src = logoData;
+        img.alt = "";
+        img.style.width = "100%";
+        img.style.height = "auto";
+        venueLogoEl.appendChild(img);
+      }
+
+      if (venue) venueNameEl.innerText = venue;
+      if (host) hostNameEl.innerText = `Your Host: ${host}`;
+    });
+  </script>
+
+
+  <div id="venueBlock" style="
+      position: fixed;
+      bottom: 60px;
+      left: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 150px;
+      pointer-events: none;
+  ">
+    <div id="venueName" style="color: white; font-weight: bold; margin-bottom: 5px; text-align: center;"></div>
+    <div id="venueLogo" style="width: 100%; max-height: 100px;"></div>
+  </div>
+
+  <div id="hostBlock" style="
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 150px;
+      pointer-events: none;
+  ">
+    <div id="hostName" style="color: white; font-weight: bold; margin-bottom: 5px; text-align: center;"></div>
+    <div id="queerazonLogo" style="width: 100%; max-height: 80px;">
+      <img src="queerazon-logo.png" alt="" style="width: 100%; height: auto;" />
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const logoData = localStorage.getItem("venueLogo");
+      const venue = localStorage.getItem("venueName");
+      const host = localStorage.getItem("callerName");
+
+      const venueNameEl = document.getElementById("venueName");
+      const hostNameEl = document.getElementById("hostName");
+      const venueLogoEl = document.getElementById("venueLogo");
+
+      if (logoData) {
+        const img = document.createElement("img");
+        img.src = logoData;
+        img.alt = "";
+        img.style.width = "100%";
+        img.style.height = "auto";
+        venueLogoEl.appendChild(img);
+      }
+
+      if (venue) venueNameEl.innerText = venue;
+      if (host) hostNameEl.innerText = `Your Host: ${host}`;
+    });
+  </script>
+
+    </div>
+
+    <div class="overlay">
+    <div class="header">
+      
+      </div>
+
+    <div class="center">
+      <div class="called-number" id="calledNumber">--</div>
+      <div class="buttons">
+        <div id="controls" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 999;"></div>
+        
+        
+        
+      </div>
+      <div class="tally" id="calledNumbersList"></div>
+    </div>
+  </div>
+
+  <script>
+    const calledDisplay = document.getElementById("calledNumber");
+    const calledList = document.getElementById("calledNumbersList");
+    const resumeBtn = document.getElementById("resumeBtn");
+
+    let allNumbers = [];
+    let remainingNumbers = [];
+
+    function getPrefix(n) {
+      if (n <= 15) return "B";
+      if (n <= 30) return "I";
+      if (n <= 45) return "N";
+      if (n <= 60) return "G";
+      return "O";
+    }
+
+    
+    function callNextNumber() {
+      if (remainingNumbers.length === 0) return;
+      const idx = Math.floor(Math.random() * remainingNumbers.length);
+      const num = remainingNumbers.splice(idx, 1)[0];
+      const prefix = getPrefix(num);
+      const label = `${prefix}-${num}`;
+      allNumbers.push({ label, num });
+      calledDisplay.textContent = label;
+
+      // Clear and re-render sorted list
+      calledList.innerHTML = "";
+      allNumbers.sort((a, b) => a.num - b.num);
+      allNumbers.forEach(entry => {
+        const tag = document.createElement("span");
+        tag.textContent = entry.label;
+        calledList.appendChild(tag);
+      });
+    }
+
+    function resetGame() {
+      remainingNumbers = Array.from({length: 75}, (_, i) => i + 1);
+      allNumbers = [];
+      calledDisplay.textContent = "--";
+      calledList.innerHTML = "";
+
+      const backgrounds = ["bg1.jpg", "bg2.jpg", "bg3.jpg", "bg4.jpg", "bg5.jpg", "bg6.jpg", "bg7.jpg", "bg8.jpg", "bg9.jpg", "bg10.jpg", "bg11.jpg", "bg12.jpg", "bg13.jpg", "bg14.jpg"];
+      const selected = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      document.body.style.backgroundImage = `url('${selected}')`;
+    }
+
+    function startIntermission() {
+      resumeBtn.style.display = "inline-block";
+      alert("Intermission mode not implemented yet.");
+    }
+
+    function resumeGame() {
+      resumeBtn.style.display = "none";
+    }
+
+    
+// On page load
+window.onload = function() {
+  document.getElementById("callerName").textContent = localStorage.getItem("callerName") || "Caller Name";
+  resetGame();
+};
+
+  
+  const venueLogoData = localStorage.getItem("venueLogo");
+  if (venueLogoData) {
+    document.getElementById("venueLogo").src = venueLogoData;
+  }
+
+</script>
+
+    <div id="controls" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 999;">
+        <button onclick="callNextNumber()">Call Next</button>
+<button id="callNextBtn" style="display:none;"></button><button onclick="resetGame()">Reset / New Game</button><button onclick="startIntermission()">Intermission</button><button id="resumeBtn" onclick="resumeGame()" style="display:none;">Resume Play</button>
+<style>#intermissionContainer button { pointer-events: auto; }</style>
+    </div>
+    
+
+
+
+
+<div style="position: absolute; bottom: 10px; right: 10px; text-align: right; z-index: 10;">
+    <div id="caller-name" style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+        
+    </div>
+    <img src="queerazon.png" alt="Queerazon Logo" style="width: 240px;">
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const name = localStorage.getItem("callerName") || "[Caller Name]";
+    const nameContainer = document.getElementById("caller-name");
+    if (nameContainer) {
+        nameContainer.textContent = "Your Host: " + name;
+    }
+});
+
+  const venueLogoData = localStorage.getItem("venueLogo");
+  if (venueLogoData) {
+    document.getElementById("venueLogo").src = venueLogoData;
+  }
+
+</script>
+
+
+    <div id="venueLogoContainer" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
+        <img id="venueLogo" src="" style="height: 160px;">
+    </div>
+
+
+  <img id="venueLogoImg" style="position: absolute; bottom: 20px; left: 20px; height: 160px;" />
+
+  
+
+    
+
+
+    
+
+
+    
+    
+
+
+
+
+
+    
+    
+
+
+    <!-- Venue Logo -->
+    
+
+    <!-- Caller Name -->
+    
+
+    
+
+
+    
+    
+
+
+    <!-- Caller Name Above Queerazon Logo -->
+    
+
+    <!-- Script to populate caller name from sign-in -->
+    
+
+
+    
+
+    
+
+
+    <!-- Host name and logo (bottom right stack) -->
+    
+    
+
+    
+
+
+    <!-- Host name (bottom right, above Queerazon logo) -->
+    
+
+    <!-- Venue logo (bottom left) -->
+    
+
+    
+
+
+    <!-- Venue logo (bottom left) -->
+    
+
+    <!-- Host label BELOW Queerazon logo in bottom right -->
+    
+
+    
+
+
+    <!-- Venue logo (bottom left) -->
+    
+
+    <!-- Inline host label (one line above Queerazon logo) -->
+    
+
+    
+
+
+    <!-- Venue logo (bottom left) -->
+    
+    <!-- Venue name (just above venue logo, lower-left) -->
+    <div id="venue-label" style="display: none; position: absolute; bottom: 190px; left: 20px; text-align: left; color: white; font-weight: bold; font-size: 18px;"></div>
+    <!-- Venue logo -->
+    <img id="venue-logo" style="position: absolute; bottom: 20px; left: 20px; height: 160px; display: none;" />
+
+
+    <!-- Inline host label (one line above Queerazon logo) -->
+    <div id="host-label" style="display: none; position: absolute; bottom: 120px; right: 20px; text-align: right; color: white; font-weight: bold; font-size: 18px;">
+    </div>
+
+    
+
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const name = localStorage.getItem('callerName');
+            const logoData = localStorage.getItem('venueLogoData');
+            const venueName = localStorage.getItem('venueName');
+
+            const callerSpan = document.getElementById('host-label');
+            const hostLabel = document.getElementById('host-label');
+            const venueLogo = document.getElementById('venue-logo');
+            const venueLabel = document.getElementById('venue-label');
+
+            if (name && hostLabel) {
+                hostLabel.textContent = `Your Host: ${name}`;
+                hostLabel.style.display = 'block';
+            }
+
+            if (logoData && venueLogo) {
+                venueLogo.src = logoData;
+                venueLogo.style.display = 'block';
+            }
+
+            if (venueName && venueLabel) {
+                venueLabel.textContent = venueName;
+                venueLabel.style.display = 'block';
+            }
+        });
+    </script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+});
+
+<script>
+let fullscreenTriggered = false;
+document.addEventListener("DOMContentLoaded", () => {
+  const callButton = document.querySelector("button");
+  if (callButton) {
+    callButton.addEventListener("click", () => {
+      if (!fullscreenTriggered) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+        fullscreenTriggered = true;
+      }
+    });
+  }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const callNextBtn = document.querySelector('button');
+  if (callNextBtn) {
+    const originalClick = callNextBtn.onclick;
+    callNextBtn.onclick = function(e) {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+      if (originalClick) originalClick.call(this, e);
+    };
+  }
+});
+</script>
+
+<!-- Intermission Slideshow -->
+<div id="intermissionContainer" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 1000; pointer-events: none; text-align: center; color: white;">
+  <img id="intermissionImage" src="" style="max-width: 100%; max-height: 80vh; margin-top: 50px;" />
+  <div id="intermissionCaption" style="margin-top: 20px; font-size: 1.5em;"></div>
+  <button onclick="endIntermission()" style="margin-top: 30px; padding: 12px 24px; font-size: 1.2em;">Resume Play</button>
+<style>#intermissionContainer button { pointer-events: auto; }</style>
+</div>
+
+<script>
+let intermissionSlides = [];
+let intermissionIndex = 0;
+let intermissionInterval;
+
+function startIntermission() {
+  const container = document.getElementById("intermissionContainer");
+  const img = document.getElementById("intermissionImage");
+  const caption = document.getElementById("intermissionCaption");
+
+  intermissionSlides = [];
+
+  // Load uploaded images and captions
+  for (let i = 0; i < 8; i++) {
+    const image = localStorage.getItem(`slideImage${i}`);
+    const text = localStorage.getItem(`slideCaption${i}`);
+    if (image) {
+      intermissionSlides.push({ src: image, caption: text || "" });
+    }
+  }
+
+  // Add Queerazon QR/logo slide
+  intermissionSlides.push({
+    src: 'data:image/png;base64,UGxhY2Vob2xkZXIgZm9yIHF1ZWVyYXpvbi1sb2dvLnBuZw==',
+    caption: "Visit Queerazon.com!"
+  });
+
+  if (intermissionSlides.length === 0) return;
+
+  intermissionIndex = 0;
+  showIntermissionSlide();
+
+  container.style.display = "block";
+  intermissionInterval = setInterval(() => {
+    intermissionIndex = (intermissionIndex + 1) % intermissionSlides.length;
+    showIntermissionSlide();
+  }, 10000);
+}
+
+function showIntermissionSlide() {
+  const slide = intermissionSlides[intermissionIndex];
+  const img = document.getElementById("intermissionImage");
+  const caption = document.getElementById("intermissionCaption");
+  img.src = slide.src;
+  caption.textContent = slide.caption;
+}
+
+function endIntermission() {
+  clearInterval(intermissionInterval);
+  document.getElementById("intermissionContainer").style.display = "none";
+}
+</script>
+
+<div id="intermissionContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; text-align: center; overflow: hidden;">
+  <img id="intermissionImage" src="" style="max-height: 90vh; max-width: 90vw; margin-top: 5vh;"/>
+  <div id="intermissionCaption" style="color: white; font-size: 24px; margin-top: 10px;"></div>
+</div>
+
+<script>
+let intermissionImages = JSON.parse(localStorage.getItem("intermissionImages") || "[]");
+let currentSlide = 0;
+let slideshowInterval = null;
+
+function startIntermission() {
+  if (intermissionImages.length === 0) {
+    alert("No images available for slideshow.");
+    return;
+  }
+
+  document.getElementById("intermissionContainer").style.display = "block";
+  document.getElementById("resumeBtn").style.display = "inline-block";
+
+  showSlide(currentSlide);
+  slideshowInterval = setInterval(() => {
+    currentSlide = (currentSlide + 1) % intermissionImages.length;
+    showSlide(currentSlide);
+  }, 10000);
+}
+
+function showSlide(index) {
+  const image = intermissionImages[index];
+  document.getElementById("intermissionImage").src = image.url;
+  document.getElementById("intermissionCaption").textContent = image.caption || "";
+}
+
+function resumeGame() {
+  clearInterval(slideshowInterval);
+  document.getElementById("intermissionContainer").style.display = "none";
+  document.getElementById("resumeBtn").style.display = "none";
+}
+</script>
+
+</body>
+
+
+
+
+
+</html>
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const logoData = localStorage.getItem("venueLogo");
+    const logoContainer = document.getElementById("venueLogo");
+    if (logoData && logoContainer) {
+      logoContainer.innerHTML = `<img src="${logoData}" alt="Venue Logo" style="width: 100%; height: auto;" />`;
+    }
+  });
+</script>

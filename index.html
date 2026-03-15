@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drag Bingo Sign-In</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      padding: 20px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    h1, h2 { margin-bottom: 0.5rem; }
+    label, button, input, select {
+      font-size: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 12px;
+    }
+    input[type="text"], select {
+      width: 100%;
+      max-width: 420px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #1f1f1f;
+      color: white;
+      box-sizing: border-box;
+      margin-top: 4px;
+    }
+    input[type="file"] {
+      margin-top: 6px;
+    }
+    button {
+      background: #e600ac;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 8px;
+    }
+    .image-block {
+      margin-bottom: 12px;
+      border: 1px dashed #555;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+    }
+    .subtle {
+      color: #ccc;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 22px);
+      gap: 4px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+    .shape-cell {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .shape-cell.active {
+      background: #ff4dc4;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset;
+    }
+    #shapePreviewWrap {
+      margin-top: 6px;
+      padding: 12px;
+      max-width: 190px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+  </style>
+</head>
+<body>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const password = prompt("Enter password to continue:");
+      if (password !== "Smudge") {
+        alert("Incorrect password. Reload the page to try again.");
+        document.body.innerHTML = "<h2 style='color:white;text-align:center;'>Access Denied</h2>";
+      }
+    });
+  </script>
+
+  <h1>Drag Bingo Sign-In</h1>
+  <p class="subtle">Set up your caller name, venue logo, intermission images, theme, and winning shape.</p>
+
+  <form id="signinForm">
+    <label>
+      Caller Name:
+      <input type="text" id="callerName" required>
+    </label>
+
+    <label>
+      Venue Name:
+      <input type="text" id="venueName" required>
+    </label>
+
+    <label>
+      Venue Logo:
+      <input type="file" id="venueLogo" accept="image/*" required>
+    </label>
+
+    <h2>Upload up to 8 images for intermission</h2>
+    <div id="imageUploads"></div>
+    <button type="button" id="addImageBtn">Add Image</button>
+
+    <br><br>
+
+    <label for="theme">Choose a Theme:</label>
+    <select id="theme" name="theme">
+      <option value="">Default</option>
+      <option value="bingo-himbos">Bingo Himbos</option>
+      <option value="unicorns-and-fairies">Unicorns &amp; Fairies</option>
+    </select>
+
+    <label for="shapePattern">Winning Shape:</label>
+    <select id="shapePattern" name="shapePattern">
+      <option value="line">Straight Line</option>
+      <option value="four-corners">Four Corners</option>
+      <option value="postage-stamp">Postage Stamp</option>
+      <option value="letter-l">Letter L</option>
+      <option value="letter-t">Letter T</option>
+      <option value="x-shape">X Shape</option>
+      <option value="full-card">Full Card / Blackout</option>
+    </select>
+
+    <div id="shapePreviewWrap">
+      <div style="font-weight:bold; margin-bottom:4px;">Shape Preview</div>
+      <div class="shape-grid" id="shapePreview"></div>
+      <div class="subtle" id="shapeDescription" style="margin:0;"></div>
+    </div>
+
+    <br>
+    <button type="submit">Enter Game</button>
+  </form>
+
+  <script>
+    let imageCount = 0;
+
+    const SHAPES = {
+      "line": {
+        label: "Straight Line",
+        description: "Traditional bingo. Players complete any row, column, or diagonal agreed upon house rules.",
+        cells: [2, 7, 12, 17, 22]
+      },
+      "four-corners": {
+        label: "Four Corners",
+        description: "All four corner squares must be marked.",
+        cells: [0, 4, 20, 24]
+      },
+      "postage-stamp": {
+        label: "Postage Stamp",
+        description: "A 2×2 square in one corner of the card.",
+        cells: [0, 1, 5, 6]
+      },
+      "letter-l": {
+        label: "Letter L",
+        description: "Down one side and across the bottom to make an L.",
+        cells: [0, 5, 10, 15, 20, 21, 22, 23, 24]
+      },
+      "letter-t": {
+        label: "Letter T",
+        description: "Across the top and down the center to make a T.",
+        cells: [0, 1, 2, 3, 4, 7, 12, 17, 22]
+      },
+      "x-shape": {
+        label: "X Shape",
+        description: "Both diagonals form the big glamorous X.",
+        cells: [0, 4, 6, 8, 12, 16, 18, 20, 24]
+      },
+      "full-card": {
+        label: "Full Card / Blackout",
+        description: "Everything on the card gets covered.",
+        cells: Array.from({ length: 25 }, (_, i) => i)
+      }
+    };
+
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function addImageUpload() {
+      if (imageCount >= 8) return;
+
+      const container = document.createElement('div');
+      container.className = 'image-block';
+      container.innerHTML = `
+        <label>
+          Image ${imageCount + 1}:
+          <input type="file" class="intermissionImage" accept="image/*">
+        </label>
+      `;
+
+      document.getElementById("imageUploads").appendChild(container);
+      imageCount++;
+    }
+
+    function renderShapePreview(shapeKey) {
+      const preview = document.getElementById("shapePreview");
+      const description = document.getElementById("shapeDescription");
+      const shape = SHAPES[shapeKey] || SHAPES.line;
+      preview.innerHTML = "";
+
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement("div");
+        cell.className = "shape-cell" + (shape.cells.includes(i) ? " active" : "");
+        preview.appendChild(cell);
+      }
+
+      description.textContent = shape.description;
+    }
+
+    document.getElementById("addImageBtn").addEventListener("click", addImageUpload);
+
+    document.getElementById("shapePattern").addEventListener("change", function() {
+      renderShapePreview(this.value);
+    });
+
+    document.getElementById("signinForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const callerName = document.getElementById("callerName").value.trim();
+      const venueName = document.getElementById("venueName").value.trim();
+      const selectedTheme = document.getElementById("theme").value;
+      const selectedShape = document.getElementById("shapePattern").value;
+      const venueLogoFile = document.getElementById("venueLogo").files[0];
+
+      if (!venueLogoFile) {
+        alert("Please upload a venue logo.");
+        return;
+      }
+
+      const venueLogoData = await fileToDataURL(venueLogoFile);
+
+      const images = [];
+      const imageInputs = document.querySelectorAll(".intermissionImage");
+      for (const input of imageInputs) {
+        const file = input.files[0];
+        if (file) {
+          images.push({ url: await fileToDataURL(file) });
+        }
+      }
+
+      localStorage.setItem("callerName", callerName);
+      localStorage.setItem("venueName", venueName);
+      localStorage.setItem("venueLogo", venueLogoData);
+      localStorage.setItem("intermissionImages", JSON.stringify(images));
+      localStorage.setItem("bingoTheme", selectedTheme);
+      localStorage.setItem("bingoShapePattern", selectedShape);
+
+      window.location.href = "game.html";
+    });
+
+    window.onload = function() {
+      addImageUpload();
+      renderShapePreview(document.getElementById("shapePattern").value);
+    };
+  </script>
+</body>
+</html>
